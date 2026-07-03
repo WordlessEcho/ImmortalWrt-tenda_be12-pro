@@ -190,18 +190,20 @@ jobs:
         with:
           path: all-firmwares
 
-      - name: Flatten and Rename Files
+      - name: Prepare Release Files
         run: |
+          set -euo pipefail
+
           mkdir -p final-release
-          for config_dir in all-firmwares/*/; do
-            config_name=$(basename "$config_dir")
-            for bin_file in "$config_dir"*.bin; do
-              if [ -f "$bin_file" ]; then
-                base=$(basename "$bin_file")
-                cp "$bin_file" "final-release/${base%.bin}-${config_name}.bin"
-              fi
-            done
-          done
+          find all-firmwares -type f -name '*.bin' -print -exec cp {} final-release/ \;
+
+          if ! find final-release -type f -name '*.bin' -print -quit | grep -q .; then
+            echo "No firmware .bin files found in downloaded artifacts" >&2
+            find all-firmwares -maxdepth 3 -type f -print >&2
+            exit 1
+          fi
+
+          ls -lh final-release
 
       - name: Create Unified Release
         uses: softprops/action-gh-release@v3.0.1
@@ -209,7 +211,8 @@ jobs:
           make_latest: true
           tag_name: ${{ github.ref_name }}
           files: final-release/*.bin
-          draft: true
+          fail_on_unmatched_files: true
+          draft: false
           body: |
             ## 📦 发布说明
 
