@@ -1,0 +1,7 @@
+BASE_REPO=https://github.com/padavanonly/immortalwrt-mt798x-6.6.git
+BASE_BRANCH=mt798x-mt799x-6.6-mtwifi
+BASE_COMMIT=dd6100333d4bdf6916c9cb7bedbcca9476696eb6
+
+OPENWRT_REPO=https://github.com/openwrt/openwrt.git
+OPENWRT_BE12_INITIAL=7d79346581582fd609513640ccde74b0ca2537cc
+OPENWRT_BE12_UPDATE=348f716408d771b5ff658d4c81141acdd17bff54
