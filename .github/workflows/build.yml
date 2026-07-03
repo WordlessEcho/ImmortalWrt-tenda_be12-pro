@@ -37,12 +37,12 @@ jobs:
 
     steps:
       - name: Checkout My Repository Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
 
       - name: Restore Download Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: dl
           key: ${{ runner.os }}-immortalwrt-dl-${{ matrix.config_name }}-${{ hashFiles(format('defconfig/{0}.config', matrix.config_file)) }}
@@ -52,7 +52,7 @@ jobs:
 
       - name: Restore Compiler Cache
         id: ccache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6.1.0
         with:
           path: .ccache
           key: ${{ runner.os }}-immortalwrt-ccache-${{ matrix.config_name }}-${{ github.ref_name }}-${{ hashFiles(format('defconfig/{0}.config', matrix.config_file)) }}-${{ github.sha }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Restore Host/Toolchain Cache
         id: host-toolchain-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6.1.0
         with:
           path: |
             staging_dir/host
@@ -154,14 +154,14 @@ jobs:
 
       - name: Save Compiler Cache
         if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6.1.0
         with:
           path: .ccache
           key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
 
       - name: Save Host/Toolchain Cache
         if: success() && steps.host-toolchain-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6.1.0
         with:
           path: |
             staging_dir/host
@@ -173,7 +173,7 @@ jobs:
           key: ${{ steps.host-toolchain-cache.outputs.cache-primary-key }}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: firmware-${{ matrix.config_name }}
           path: bin/targets/mediatek/filogic/*.bin
@@ -186,7 +186,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
     steps:
       - name: Download All Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           path: all-firmwares
 
@@ -204,7 +204,7 @@ jobs:
           done
 
       - name: Create Unified Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3.0.1
         with:
           make_latest: true
           tag_name: ${{ github.ref_name }}
