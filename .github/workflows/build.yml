@@ -5,6 +5,16 @@ on:
     tags:
       - v**
   workflow_dispatch:
+    inputs:
+      build_config:
+        description: Firmware config to build
+        required: true
+        type: choice
+        default: full
+        options:
+          - full
+          - mini
+          - both
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,12 +24,9 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - config_name: mini
-            config_file: minimal
-          - config_name: full
-            config_file: full
+        include: ${{ fromJSON(github.event_name == 'push' && '[{"config_name":"full","config_file":"full"}]' || inputs.build_config == 'mini' && '[{"config_name":"mini","config_file":"minimal"}]' || inputs.build_config == 'both' && '[{"config_name":"mini","config_file":"minimal"},{"config_name":"full","config_file":"full"}]' || '[{"config_name":"full","config_file":"full"}]') }}
 
     env:
       DEBIAN_FRONTEND: noninteractive
@@ -207,7 +214,8 @@ jobs:
             ## 📦 发布说明
 
             ### ✨ 构建配置
-            - **mini**: 最小化构建，仅包含核心功能。
+            - tag 默认发布 **full** 固件。
+            - **mini** 仅通过手动 workflow_dispatch 构建。
             - **full**: 完整构建，包含以下额外预装插件：
               - `luci-proto-wireguard`: WireGuard 协议支持
               - `luci-app-wol`: 网络唤醒 (WoL) 功能
