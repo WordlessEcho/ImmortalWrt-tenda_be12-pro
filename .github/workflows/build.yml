@@ -152,6 +152,11 @@ jobs:
 
           ccache --show-stats || true
 
+      - name: Build SDK
+        run: |
+          set -euo pipefail
+          make target/sdk/install -j"$(nproc)" V=s
+
       - name: Save Compiler Cache
         if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
@@ -176,7 +181,9 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: firmware-${{ matrix.config_name }}
-          path: bin/targets/mediatek/filogic/*.bin
+          path: |
+            bin/targets/mediatek/filogic/*.bin
+            bin/targets/mediatek/filogic/*sdk*.tar.xz
 
   publish:
     needs: build
@@ -196,6 +203,7 @@ jobs:
 
           mkdir -p final-release
           find all-firmwares -type f -name '*.bin' -print -exec cp {} final-release/ \;
+          find all-firmwares -type f -name '*sdk*.tar.xz' -print -exec cp {} final-release/ \;
 
           if ! find final-release -type f -name '*.bin' -print -quit | grep -q .; then
             echo "No firmware .bin files found in downloaded artifacts" >&2
@@ -210,7 +218,7 @@ jobs:
         with:
           make_latest: true
           tag_name: ${{ github.ref_name }}
-          files: final-release/*.bin
+          files: final-release/*
           fail_on_unmatched_files: true
           draft: false
           body: |
