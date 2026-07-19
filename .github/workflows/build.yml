@@ -152,6 +152,14 @@ jobs:
 
           ccache --show-stats || true
 
+      - name: Package IPKs
+        run: |
+          set -euo pipefail
+          mkdir -p ipk-release
+          find bin/packages bin/targets -type f -name '*.ipk' -print -exec cp {} ipk-release/ \;
+          ls ipk-release | wc -l
+          tar -C ipk-release -cf "ipks-${{ matrix.config_name }}.tar" .
+
       - name: Save Compiler Cache
         if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
@@ -176,7 +184,9 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: firmware-${{ matrix.config_name }}
-          path: bin/targets/mediatek/filogic/*.bin
+          path: |
+            bin/targets/mediatek/filogic/*.bin
+            ipks-${{ matrix.config_name }}.tar
 
   publish:
     needs: build
@@ -196,6 +206,7 @@ jobs:
 
           mkdir -p final-release
           find all-firmwares -type f -name '*.bin' -print -exec cp {} final-release/ \;
+          find all-firmwares -type f -name 'ipks-*.tar' -print -exec cp {} final-release/ \;
 
           if ! find final-release -type f -name '*.bin' -print -quit | grep -q .; then
             echo "No firmware .bin files found in downloaded artifacts" >&2
